@@ -6,6 +6,9 @@ This repository contains the implementation of a Connect Game Environment using 
 
 - [Description](#description)
 - [Installation](#installation)
+- [Usage](#usage)
+- [Setting Player Mode](#setting-player-modes)
+- [Parameters](#connectgameenv-class)
 
 ## Description
 
@@ -87,21 +90,6 @@ else:
 ```
 move = env.set_players(player_1_mode='human_gui', player_2_mode='human_gui')
 ```
-
-Parameters
-The ConnectGameEnv class accepts several parameters to customize the environment:
-
-connect: Number of consecutive tokens required to win (default is 4).
-width: Width of the game board (number of columns, default is 7).
-height: Height of the game board (number of rows, default is 7).
-reward_winner: Reward given to the winner at the end of the game (default is 1).
-reward_loser: Reward (penalty) given to the loser at the end of the game (default is -1).
-living_reward: Reward given at each step of the game, applicable to all ongoing games (default is 0).
-max_steps: Maximum number of steps the game can take before ending (default is 100).
-delay: Time delay (in milliseconds) between moves, primarily used for GUI purposes (default is 100).
-square_size: Size of the squares in the GUI (default is 100).
-avatar_player_1: Base64 format avatar image for player 1.
-avatar_player_2: Base64 format avatar image for player 2.
 
 # ConnectGameEnv Class
 
