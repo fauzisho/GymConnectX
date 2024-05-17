@@ -264,10 +264,7 @@ class ConnectGameEnv(gym.Env):
 
         self.delay = delay
 
-        self.observation_space = Tuple([Box(low=0, high=1,
-                                            shape=(3, self.width, self.height),
-                                            dtype=np.int32)
-                                        for _ in range(2)])
+        self.observation_space = Box(low=0, high=255, shape=(height, width, 1), dtype=np.uint8)
         self.action_space = Tuple([Discrete(self.width) for _ in range(2)])
         self.state_space_size = (self.height * self.width) ** 3
 
@@ -293,13 +290,13 @@ class ConnectGameEnv(gym.Env):
         player, and calculates the rewards based on the state of the game. It also updates the display through the renderer and
         prepares the info dictionary for the next player's move.
         """
-        if not (0 <= movecol <= self.width and self.board[movecol][self.height - 1] == -1):
+        if not (0 <= movecol < self.width and self.board[movecol][self.height - 1] == -1):
             raise IndexError(
                 f'Invalid move. tried to place a chip on column {movecol} which is already full. Valid moves are: {self.get_moves()}')
+
         row = self.height - 1
         while row >= 0 and self.board[movecol][row] == -1:
             row -= 1
-
         row += 1
 
         self.board[movecol][row] = self.current_player
@@ -307,16 +304,16 @@ class ConnectGameEnv(gym.Env):
 
         self.winner, reward_vector = self.check_for_episode_termination(movecol, row)
 
-        info = {'legal_actions': self.get_moves(),
-                'next_player': self.current_player + 1}
-
-        reward_players = {'player_1': reward_vector[0],
-                          'player_2': reward_vector[1]}
-
+        info = {'legal_actions': self.get_moves(), 'next_player': self.current_player + 1}
+        reward_players = {'player_1': reward_vector[0], 'player_2': reward_vector[1]}
         self.is_done = self.winner is not None
         self.renderer.update_display()
 
-        return self.get_player_observations(), reward_players, self.is_done, info
+        obs = self.get_player_observations()
+        terminated = self.is_done
+        truncated = False
+
+        return obs, reward_players, terminated, truncated, info
 
     def reset(self) -> List[np.ndarray]:
         """

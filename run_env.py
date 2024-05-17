@@ -1,74 +1,30 @@
-from gymconnectx.envs.gymconnectxenv import ConnectGameEnv
+import gymconnectx
+import gym
 
 def run_game_env():
-    # Initialize a game environment instance.
-    env = ConnectGameEnv(avatar_player_1=get_player_image1(),
-                         avatar_player_2=get_player_image2())
-
-    # here is example to custom possibility of a game env
-    # env = ConnectGameEnv(
-    #     connect=4,
-    #     width=7,
-    #     height=7,
-    #     reward_winner=2,
-    #     reward_loser=-2,
-    #     living_reward= -0.01,
-    #     max_steps = 50,
-    #     delay=100,
-    #     square_size=75,
-    #     avatar_player_1=get_player_image1(),
-    #     avatar_player_2=get_player_image2()
-    # )
-
-    # Continue looping as long as the game is not finished and the number of steps does not exceed the maximum allowed.
-    # for example if we implement q learning, we can add looping of this function to run of how many games we needed to train model
-
-    # Reset the game environment to its initial state.
+    env = gym.make('gymconnectx/ConnectGameEnv', connect=4, width=7, height=7, reward_winner=1, reward_loser=-1,
+                   living_reward=0, max_steps=100, delay=100, square_size=100, avatar_player_1=get_player_image1(),
+                   avatar_player_2=get_player_image2())
     env.reset()
 
     while not env.is_done and env.current_step < env.max_steps:
         try:
-            # Example 1. Set the player modes. Both Player 1 and Player 2 make random moves.
             move = env.set_players(player_1_mode='random', player_2_mode='random')
-
-            # Example 2. Set the player modes. Player 1 makes moves through the terminal, and Player 2 makes random moves.
-            # move = env.set_players(player_1_mode='human_terminal', player_2_mode='random')
-
-            # Example 3. Set the player modes. Player 1 makes moves through the GUI, and Player 2 makes random moves.
-            # move = env.set_players(player_1_mode='human_gui', player_2_mode='random')
-
-            # Example 4. Set the player modes. Player 1 makes moves through the GUI, and Player 2 follows a custom policy (RL,tabular q-learning,etc).
-            # if env.get_current_player() == 1:
-            #     move = env.set_players(player_1_mode='human_gui')
-            # else:
-            #     move = env.get_action_random()  # Add your policy here
-
-            # Example 5. Set the player modes. Player 1 and 2 makes moves through the GUI.
-            # move = env.set_players(player_1_mode='human_gui', player_2_mode='human_gui')
-
-            # Perform a game step using the determined move and capture the game's response.
-            observations, rewards, done, info = env.step(move)
-
-            # Render the game state to the terminal.
+            observations, rewards, done, _, info = env.step(move)
             env.render(mode='terminal_display')
-            # Update the GUI display based on the current game state.
             env.render(mode='gui_update_display')
 
-            # Print current game step, the move made, rewards received, game completion status, and additional info.
             print(f"Step: {env.current_step}, "
                   f"Move: {move}, "
                   f"Rewards: {rewards}, "
                   f"Done: {done}, "
                   f"Info: {info}")
 
-            # Print the current game status, such as who is winning or if there's a draw.
             print(env.get_game_status())
 
-            # If the game is done, exit the loop.
             if done:
                 break
             else:
-                # Increment the step counter if the game is not finished.
                 env.current_step += 1
 
         except Exception as e:

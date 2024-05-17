@@ -1,1 +1,2 @@
 from gymconnectx.envs.gymconnectxenv import ConnectGameEnv
+from gymconnectx.envs.gymconnectxenv import PyGameRenderEnv
