@@ -2,6 +2,9 @@
 
 This repository contains the implementation of a Connect Game Environment using OpenAI's Gym and Pygame for rendering. The environment supports various game modes like Connect 4 and includes features like GUI display, avatar support for players, and different modes of player interaction (human, random).
 
+
+![demo.png](demo.png)
+
 ## Table of Contents
 
 - [Description](#description)
