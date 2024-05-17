@@ -1,3 +1,6 @@
+import os
+import re
+import urllib
 from typing import List
 import io
 import gym
@@ -16,8 +19,8 @@ class PyGameRenderEnv:
         Parameters:
             game_env: An instance of the Connect Game environment.
             square_size (int): The size of each square on the game board. Default is 100.
-            avatar_player_1: Base64 format add avatar image player 1
-            avatar_player_2: Base64 format add avatar image player 2
+            avatar_player_1: avatar image player 1
+            avatar_player_2: avatar image player 2
         """
         self.game_env = game_env
         self.square_size = square_size
@@ -39,31 +42,58 @@ class PyGameRenderEnv:
         self.font = pygame.font.SysFont("monospace", 25)
         self.preview_index = -1
 
-        if avatar_player_1:
-            self.avatar_player_1 = self.load_image_from_base64(avatar_player_1)
-        else:
-            self.avatar_player_1 = None
+        self.avatar_player_1 = self.load_avatar(avatar_player_1)
+        self.avatar_player_2 = self.load_avatar(avatar_player_2)
 
-        if avatar_player_2:
-            self.avatar_player_2 = self.load_image_from_base64(avatar_player_2)
-        else:
-            self.avatar_player_2 = None
+    def is_url(self, string):
+        """Check if the string is a URL."""
+        return string.startswith(('http://', 'https://'))
+
+    def is_base64(self, string):
+        """Check if the string is in base64 format."""
+        if string.startswith('data:image/'):
+            return True
+        # Additional checks can be added to validate base64 using regex
+        # This regex checks if it contains only base64 characters and ends with '='
+        return bool(re.match('^[A-Za-z0-9+/]+={0,2}$', string.split(',')[-1]))
+
+    def is_path(self, string):
+        """Check if the string is a file path. This is usually the fallback option."""
+        return os.path.isfile(string)
+
+    def load_image_from_path(self, path):
+        """Loads an image from a local file path and resizes it."""
+        return self.process_image(pygame.image.load(path))
+
+    def load_image_from_url(self, url):
+        """Loads an image from a URL and resizes it."""
+        with urllib.request.urlopen(url) as response:
+            image_data = response.read()
+        return self.process_image(pygame.image.load(io.BytesIO(image_data)))
+
+    def load_avatar(self, avatar_string):
+        """Determines the type of the avatar input and loads the image accordingly."""
+        if self.is_url(avatar_string):
+            return self.load_image_from_url(avatar_string)
+        elif self.is_base64(avatar_string):
+            return self.load_image_from_base64(avatar_string)
+        elif avatar_string is not None:
+            return self.load_image_from_path(avatar_string)
+        return None
 
     def load_image_from_base64(self, base64_string):
         """Helper method to convert a base64 string to a pygame image and resize it to fit within the game piece circle."""
         image_data = base64.b64decode(base64_string)
         image_io = io.BytesIO(image_data)
         image = pygame.image.load(image_io)
+        return self.process_image(image)
 
-        # The diameter of the circle is twice the radius
+    def process_image(self, image):
+        """Helper method to resize an image to fit within the game piece circle."""
         circle_diameter = self.circle_radius * 2
-        # Calculate the new dimensions to be 70% of the circle's diameter
         new_width = int(circle_diameter * 0.7)
         new_height = int(circle_diameter * 0.7)
-
-        # Resize the image to the new dimensions
         resized_image = pygame.transform.scale(image, (new_width, new_height))
-
         return resized_image
 
     def draw_board(self):
@@ -245,8 +275,8 @@ class ConnectGameEnv(gym.Env):
         :param living_reward: Reward given at each step of the game, applicable to all ongoing games (default is 0).
         :param max_steps: Maximum number of steps the game can take before ending (default is 100).
         :param delay: Time delay (in milliseconds) between moves, primarily used for GUI purposes (default is 100).
-        :param avatar_player_1: Base64 format add avatar image player 1
-        :param avatar_player_2: Base64 format add avatar image player 2
+        :param avatar_player_1: avatar image player 1
+        :param avatar_player_2: avatar image player 2
         Initializes the environment with the specified dimensions and settings. It sets up spaces for observations
         and actions based on the game rules, as well as initializing a renderer for graphical display.
         """
@@ -605,4 +635,3 @@ class ConnectGameEnv(gym.Env):
             return "The game is a draw."
         else:
             return f"Player {self.winner + 1} wins!"
-
