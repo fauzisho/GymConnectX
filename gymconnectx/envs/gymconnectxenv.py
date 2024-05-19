@@ -1,12 +1,10 @@
+import base64
 import os
 import re
-import urllib
-import urllib.request
 from typing import List
 import io
 import gym
 from gym.spaces import Box, Discrete, Tuple
-import imgBase64
 import pygame
 import sys
 import numpy as np
