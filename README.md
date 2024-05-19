@@ -117,5 +117,5 @@ The `ConnectGameEnv` class is designed to simulate a Connect 4-like game environ
 - **max_steps** (int): The maximum number of steps the game can take before it ends. Default is `100`.
 - **delay** (int): Time delay (in milliseconds) between moves, primarily used for GUI purposes. Default is `100`.
 - **square_size** (int): Size of the squares in the GUI. Default is `100`.
-- **avatar_player_1** (string): Base64 format avatar image for player 1. This is used in the GUI.
-- **avatar_player_2** (string): Base64 format avatar image for player 2. This is used in the GUI.
+- **avatar_player_1** (string): Base64/path format avatar image for player 1. This is used in the GUI.
+- **avatar_player_2** (string): Base64/path format avatar image for player 2. This is used in the GUI.

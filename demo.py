@@ -19,6 +19,7 @@ def run_game_env():
             env.render(mode='terminal_display')
             env.render(mode='gui_update_display')
 
+            print(f'Observation: {observations}')
             print(f"Step: {env.current_step}, "
                   f"Move: {move}, "
                   f"Rewards: {rewards}, "

@@ -1,11 +1,12 @@
 import os
 import re
 import urllib
+import urllib.request
 from typing import List
 import io
 import gym
 from gym.spaces import Box, Discrete, Tuple
-import base64
+import imgBase64
 import pygame
 import sys
 import numpy as np
@@ -65,16 +66,10 @@ class PyGameRenderEnv:
         """Loads an image from a local file path and resizes it."""
         return self.process_image(pygame.image.load(path))
 
-    def load_image_from_url(self, url):
-        """Loads an image from a URL and resizes it."""
-        with urllib.request.urlopen(url) as response:
-            image_data = response.read()
-        return self.process_image(pygame.image.load(io.BytesIO(image_data)))
-
     def load_avatar(self, avatar_string):
         """Determines the type of the avatar input and loads the image accordingly."""
-        if self.is_url(avatar_string):
-            return self.load_image_from_url(avatar_string)
+        if avatar_string is None:
+            return None
         elif self.is_base64(avatar_string):
             return self.load_image_from_base64(avatar_string)
         elif avatar_string is not None:
