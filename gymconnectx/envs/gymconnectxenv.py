@@ -255,8 +255,8 @@ class PyGameRenderEnv:
 
 
 class ConnectGameEnv(gym.Env):
-    def __init__(self, connect=4, width=7, height=7, reward_winner=1, reward_loser=-1, living_reward=0, max_steps=100,
-                 delay=100, square_size=100, avatar_player_1=None, avatar_player_2=None):
+    def __init__(self, connect=4, width=7, height=7, reward_winner=1, reward_loser=-1, living_reward=0, reward_draw=0.5,
+                 max_steps=100, delay=100, square_size=100, avatar_player_1=None, avatar_player_2=None):
         """
         Initializes a new ConnectGameEnv, which is a gaming environment for playing games like Connect Four.
 
@@ -268,8 +268,10 @@ class ConnectGameEnv(gym.Env):
         :param living_reward: Reward given at each step of the game, applicable to all ongoing games (default is 0).
         :param max_steps: Maximum number of steps the game can take before ending (default is 100).
         :param delay: Time delay (in milliseconds) between moves, primarily used for GUI purposes (default is 100).
-        :param avatar_player_1: avatar image player 1
-        :param avatar_player_2: avatar image player 2
+        :param avatar_player_1: avatar image player 1 base64/path
+        :param avatar_player_2: avatar image player 2 base64/path
+        :param reward_draw: Reward given to both players in case of a draw (default is 0).
+
         Initializes the environment with the specified dimensions and settings. It sets up spaces for observations
         and actions based on the game rules, as well as initializing a renderer for graphical display.
         """
@@ -280,6 +282,7 @@ class ConnectGameEnv(gym.Env):
         self.reward_loser = reward_loser
         self.reward_winner = reward_winner
         self.living_reward = living_reward
+        self.reward_draw = reward_draw
 
         self.max_steps = max_steps
         self.current_step = 0
@@ -303,7 +306,7 @@ class ConnectGameEnv(gym.Env):
         :return: A tuple containing four elements:
             - Observations: Current state of the board from the perspective of both players.
             - Reward_players: A dictionary detailing the rewards for player 1 and player 2 based on the latest move.
-            - Is_done: Boolean value indicating whether the game has ended (either by a win or a full board).
+            - terminated: Boolean value indicating whether the game has ended (either by a win or a full board).
             - Info: A dictionary containing additional information such as legal actions for the next move and the next player.
 
         Raises:
@@ -332,11 +335,10 @@ class ConnectGameEnv(gym.Env):
         self.is_done = self.winner is not None
         self.renderer.update_display()
 
-        obs = self.get_player_observations()
+        observations = self.get_player_observations()
         terminated = self.is_done
-        truncated = False
 
-        return obs, reward_players, terminated, truncated, info
+        return observations, reward_players, terminated, False, info
 
     def reset(self) -> List[np.ndarray]:
         """
@@ -439,7 +441,7 @@ class ConnectGameEnv(gym.Env):
                 reward_vector = [self.reward_loser, self.reward_winner]
         elif self.get_moves() == []:
             winner = -1
-            reward_vector = [0, 0]
+            reward_vector = [self.reward_draw, self.reward_draw]
         return winner, reward_vector
 
     def get_moves(self):
