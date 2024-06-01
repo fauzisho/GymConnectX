@@ -45,7 +45,7 @@ class QLearningAgent:
         self.q_table[state_key][action] += self.alpha * (
                 reward + self.gamma * next_max - self.q_table[state_key][action])
 
-    def save_q_table_to_csv(self, file_name="q_table.csv"):
+    def save_q_table_to_csv(self, file_name="q_table_old.csv"):
         """Save the Q-table to a CSV file."""
         with open(file_name, 'w', newline='') as file:
             writer = csv.writer(file)
@@ -62,9 +62,7 @@ def train_agent_env():
         height=3,
         reward_winner=3,
         reward_loser=-3,
-        living_reward=-0.1,
-        avatar_player_1='img_cat.png',
-        avatar_player_2='img_cat.png')
+        living_reward=-0.1,)
 
     agent = QLearningAgent()
 

@@ -306,11 +306,11 @@ class ConnectGameEnv(gym.Env):
         :return: A tuple containing four elements:
             - Observations: Current state of the board from the perspective of both players.
             - Reward_players: A dictionary detailing the rewards for player 1 and player 2 based on the latest move.
-            - terminated: Boolean value indicating whether the game has ended (either by a win or a full board).
+            - terminated: Boolean value indicating whether the game has ended (either by a win or a single_player board).
             - Info: A dictionary containing additional information such as legal actions for the next move and the next player.
 
         Raises:
-            IndexError: If the move is invalid (e.g., the column is full or out of bounds).
+            IndexError: If the move is invalid (e.g., the column is single_player or out of bounds).
 
         This method updates the game state by inserting a chip into the chosen column, checks for a winner, updates the current
         player, and calculates the rewards based on the state of the game. It also updates the display through the renderer and
@@ -318,7 +318,7 @@ class ConnectGameEnv(gym.Env):
         """
         if not (0 <= movecol < self.width and self.board[movecol][self.height - 1] == -1):
             raise IndexError(
-                f'Invalid move. tried to place a chip on column {movecol} which is already full. Valid moves are: {self.get_moves()}')
+                f'Invalid move. tried to place a chip on column {movecol} which is already single_player. Valid moves are: {self.get_moves()}')
 
         row = self.height - 1
         while row >= 0 and self.board[movecol][row] == -1:
@@ -597,7 +597,7 @@ class ConnectGameEnv(gym.Env):
                 step_move = int(input("Enter your move (odd column number): "))
                 if step_move not in self.get_moves():
                     self.renderer.show_alert("Please select another column.")
-                    print("That column is full or invalid. Try again.")
+                    print("That column is single_player or invalid. Try again.")
             except ValueError:
                 print("Please enter a valid integer.")
 

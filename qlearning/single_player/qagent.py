@@ -58,7 +58,7 @@ class QLearningAgent:
         self.q_table[state_key][action] += self.alpha * (
                 reward + self.gamma * next_max - self.q_table[state_key][action])
 
-    def save_q_table_to_csv(self, file_name="q_table.csv"):
+    def save_q_table_to_csv(self, file_name="q_table_old.csv"):
         """Save the Q-table to a CSV file."""
         with open(file_name, 'w', newline='') as file:
             writer = csv.writer(file)
@@ -68,7 +68,7 @@ class QLearningAgent:
                     writer.writerow([state, action, q_value])
 
     @staticmethod
-    def load_q_table_from_csv(file_name="q_table.csv"):
+    def load_q_table_from_csv(file_name="q_table_old.csv"):
         """Load the Q-table from a CSV file."""
         q_table = {}
         if os.path.exists(file_name):
@@ -84,26 +84,19 @@ class QLearningAgent:
         return q_table
 
 
-def pretrain_agent_env(file_name="full_q_table.csv"):
+def train_agent_env():
     env = ConnectGameEnv(
         connect=3,
         width=3,
         height=3,
         reward_winner=3,
         reward_loser=-3,
-        block_reward=-15,
-        reward_draw=1,
-        living_reward=-0.1,
-        avatar_player_1='img_cat.png',
-        avatar_player_2='img_cat.png'
-    )
+        living_reward=-0.1, )
 
-    q_table = QLearningAgent.load_q_table_from_csv(file_name)
-    agent = QLearningAgent(q_table=q_table)
+    agent = QLearningAgent()
 
-    for game in range(1):
+    for game in range(50000):
         env.reset()
-        player_2_scenario = [0, 2, 2, 2]
         state = ""
         action = -1
         while not env.is_done:
@@ -114,29 +107,9 @@ def pretrain_agent_env(file_name="full_q_table.csv"):
                     move = agent.choose_action(state, possible_action)
                     action = move
                 else:
-                    if env.current_step == 1:
-                        if player_2_scenario[0] in env.get_moves():
-                            move = player_2_scenario[0]
-                        else:
-                            move = env.get_action_random()
-                    elif env.current_step == 3:
-                        if player_2_scenario[1] in env.get_moves():
-                            move = player_2_scenario[1]
-                        else:
-                            move = env.get_action_random()
-                    elif env.current_step == 5:
-                        if player_2_scenario[2] in env.get_moves():
-                            move = player_2_scenario[2]
-                        else:
-                            move = env.get_action_random()
-                    elif env.current_step == 7:
-                        if player_2_scenario[3] in env.get_moves():
-                            move = player_2_scenario[3]
-                        else:
-                            move = env.get_action_random()
+                    move = env.get_action_random()
 
                 next_state, rewards, done, _, info = env.step(move)
-                env.render('terminal_display')
 
                 if done or env.get_current_player() == 2 and action != -1:
                     reward_player_1 = rewards['player_1']
@@ -146,7 +119,6 @@ def pretrain_agent_env(file_name="full_q_table.csv"):
                     print("------------------------")
                     env.render('terminal_display')
                     print(env.get_game_status())
-                    print(f'state: {state}')
                     print(f'game: {game}, action: {action}, reward: {reward_player_1}')
                     print("------------------------")
                     break
@@ -168,10 +140,7 @@ def play_with_q_table(file_name="q_table.csv"):
         height=3,
         reward_winner=3,
         reward_loser=-3,
-        living_reward=-0.1,
-        avatar_player_1='img_cat.png',
-        avatar_player_2='img_cat.png'
-    )
+        living_reward=-0.1,)
 
     q_table = QLearningAgent.load_q_table_from_csv(file_name)
     agent = QLearningAgent(q_table=q_table, epsilon=0.0)  # epsilon=0.0 to ensure no exploration
@@ -196,5 +165,5 @@ def play_with_q_table(file_name="q_table.csv"):
 
 
 if __name__ == "__main__":
-    pretrain_agent_env()
+    train_agent_env()
     # play_with_q_table()
