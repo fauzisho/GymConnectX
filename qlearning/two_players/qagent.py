@@ -14,16 +14,15 @@ class QLearningAgent:
         self.q_table = q_table  # Q-table initially empty
         self.alpha = alpha  # Learning rate
         self.gamma = gamma  # Discount factor
-        self.epsilon = epsilon  # Exploration rate
 
     def get_state_key(self, state):
         """Convert state to a string key for Q-table."""
         return str(state)
 
-    def choose_action(self, state, possible_actions) -> int:
+    def choose_action(self, state, possible_actions, epsilon=0.0) -> int:
         """Choose an action using an epsilon-greedy policy."""
         state_key = self.get_state_key(state)
-        if random.random() < self.epsilon:  # Exploration
+        if random.random() < epsilon:  # Exploration
             return random.choice(possible_actions)
         else:  # Exploitation
             if state_key in self.q_table and self.q_table[state_key]:
@@ -84,7 +83,7 @@ def play_with_q_table(file_name="q_table_player_2.csv"):
     env = ConnectEnv()
 
     q_table = QLearningAgent.load_q_table_from_csv(file_name)
-    agent = QLearningAgent(q_table=q_table, epsilon=0.0)  # epsilon=0.0 to ensure no exploration
+    agent = QLearningAgent(q_table=q_table)  # epsilon=0.0 to ensure no exploration
 
     env.reset()
     while not env.is_done:
@@ -106,10 +105,15 @@ def play_with_q_table(file_name="q_table_player_2.csv"):
 
 
 def ConnectEnv():
-    return ConnectGameEnv(connect=4, width=6, height=7, reward_winner=1, reward_loser=0, living_reward=0)
+    return ConnectGameEnv(connect=3, width=4, height=3, reward_winner=3, reward_loser=-3, living_reward=-0.01)
 
 
 def train_agent_env(num_training, num_trials, num_exploit, games_per_segment=1000):
+    total_games = num_training + num_exploit
+    num_segments = total_games // games_per_segment
+    segment_results = {i: [] for i in range(num_segments)}
+    segment = 0
+
     env = ConnectEnv()
     roles = ['player_1', 'player_2']
     agent_1 = QLearningAgent(roles[0])
@@ -117,9 +121,14 @@ def train_agent_env(num_training, num_trials, num_exploit, games_per_segment=100
     last_state = {role: None for role in roles}
     last_action = {role: None for role in roles}
 
-    for game in range(num_training):
+    for game in range(total_games):
+        if (game + 1) > num_training:
+            epsilon = 0.0
+        else:
+            epsilon = 0.1
         env.reset()
         done = False
+        # start training game
         while not done:
             current_role = roles[env.get_current_player() - 1]
             if env.get_current_player() == 1:
@@ -129,7 +138,7 @@ def train_agent_env(num_training, num_trials, num_exploit, games_per_segment=100
 
             state = str(env.get_player_observations())
             possible_actions = env.get_moves()
-            action = agent.choose_action(state, possible_actions)
+            action = agent.choose_action(state, possible_actions, epsilon)
 
             next_state, rewards, done, _, info = env.step(action)
             env.render("terminal_display")
@@ -154,9 +163,17 @@ def train_agent_env(num_training, num_trials, num_exploit, games_per_segment=100
                 print("------------------------")
 
                 if (game + 1) % games_per_segment == 0:
-                    # Save the Q-table to CSV after training
-                    agent_1.save_q_table_to_csv(f'q_table_player_1_{game + 1}.csv')
-                    agent_2.save_q_table_to_csv(f'q_table_player_2_{game + 1}.csv')
+                    q_table_name_agent_1 = f'q_table_player_1_{game + 1}.csv'
+                    q_table_name_agent_2 = f'q_table_player_2_{game + 1}.csv'
+                    agent_1.save_q_table_to_csv(q_table_name_agent_1)
+                    agent_2.save_q_table_to_csv(q_table_name_agent_2)
+
+                    for _ in range(num_trials):
+                        win_rate = evaluate_agent(q_table_name_agent_1, 100, env, epsilon)
+                        segment_results[segment].append(win_rate)
+                    segment = segment + 1
+
+    plot_results(segment_results)
 
 
 def evaluate_agent(q_table_file, num_games, env, epsilon=0.0):
@@ -208,13 +225,18 @@ def plot_results(segmented_results):
     plt.show()
 
 
-def collect_results(q_table_files, total_games, num_trials, games_per_segment, epsilon):
+def collect_results(q_table_files, num_training, num_exploit, num_trials, games_per_segment):
+    total_games = (num_training + num_exploit)
     env = ConnectEnv()
     num_segments = total_games // games_per_segment
     segment_results = {i: [] for i in range(num_segments)}
 
     for _ in range(num_trials):
         for segment in range(num_segments):
+            if segment > num_training:
+                epsilon = 0.0
+            else:
+                epsilon = 0.1
             start_game = segment * games_per_segment + 1
             end_game = min((segment + 1) * games_per_segment, total_games)
             q_table_index = start_game // games_per_segment
@@ -228,15 +250,16 @@ def collect_results(q_table_files, total_games, num_trials, games_per_segment, e
 if __name__ == "__main__":
     # play_with_q_table(file_name="q_table_player_2.csv")
 
-    train_agent_env(num_training=7500,
-                    num_exploit=2500,
-                    num_trials=5,
-                    games_per_segment=500)
-
-
-    num_games = 5000  # Total number of games to evaluate
+    num_training = 5000  # Total number of games to evaluate
+    num_exploit = 2500
     games_per_segment = 500  # Number of games per segment to show in the box plot
     num_trials = 5  # Number of times to evaluate
+
+    train_agent_env(num_training=num_training,
+                    num_exploit=num_exploit,
+                    num_trials=num_trials,
+                    games_per_segment=games_per_segment)
+
     q_table_files = [
         'q_table_player_1_500.csv',
         'q_table_player_1_1000.csv',
@@ -252,22 +275,12 @@ if __name__ == "__main__":
         'q_table_player_1_6000.csv',
         'q_table_player_1_6500.csv',
         'q_table_player_1_7000.csv',
-        'q_table_player_1_7500.csv'
-    ]
-    segmented_results = collect_results(q_table_files, num_games, num_trials, games_per_segment, 0.1)
-    plot_results(segmented_results)
-
-    # exploitation
-    num_games = 2500  # Total number of games to evaluate
-    games_per_segment = 500  # Number of games per segment to show in the box plot
-    num_trials = 5  # Number of times to evaluate
-    q_table_files = [
+        'q_table_player_1_7500.csv',
         'q_table_player_1_5500.csv',
         'q_table_player_1_6000.csv',
         'q_table_player_1_6500.csv',
         'q_table_player_1_7000.csv',
         'q_table_player_1_7500.csv'
     ]
-
-    segmented_results = collect_results(q_table_files, num_games, num_trials, games_per_segment, 0.0)
+    segmented_results = collect_results(q_table_files, num_training, num_exploit, num_trials, games_per_segment)
     plot_results(segmented_results)
