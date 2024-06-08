@@ -13,7 +13,7 @@ def run_game_env():
 
     while not env.is_done and env.current_step < env.max_steps:
         try:
-            move = env.set_players(player_1_mode='human_gui', player_2_mode='human_gui')
+            move = env.set_players(player_1_mode='human_gui', player_2_mode='random')
             observations, rewards, done, _, info = env.step(move)
             env.render(mode='terminal_display')
             env.render(mode='gui_update_display')

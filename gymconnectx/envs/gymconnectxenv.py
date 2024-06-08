@@ -44,10 +44,6 @@ class PyGameRenderEnv:
         self.avatar_player_1 = self.load_avatar(avatar_player_1)
         self.avatar_player_2 = self.load_avatar(avatar_player_2)
 
-    def is_url(self, string):
-        """Check if the string is a URL."""
-        return string.startswith(('http://', 'https://'))
-
     def is_base64(self, string):
         """Check if the string is in base64 format."""
         if string.startswith('data:image/'):
@@ -255,8 +251,20 @@ class PyGameRenderEnv:
 
 
 class ConnectGameEnv(gym.Env):
-    def __init__(self, connect=4, width=7, height=7, reward_winner=1, reward_loser=-1, living_reward=0, reward_draw=0.5,
-                 max_steps=100, delay=100, square_size=100, avatar_player_1=None, avatar_player_2=None):
+    def __init__(self, connect=4,
+                 width=7,
+                 height=7,
+                 reward_winner=1,
+                 reward_loser=-1,
+                 living_reward=0,
+                 reward_draw=0.5,
+                 max_steps=100,
+                 hell_states=None,
+                 hell_reward=0,
+                 delay=100,
+                 square_size=100,
+                 avatar_player_1=None,
+                 avatar_player_2=None):
         """
         Initializes a new ConnectGameEnv, which is a gaming environment for playing games like Connect Four.
 
@@ -275,6 +283,8 @@ class ConnectGameEnv(gym.Env):
         Initializes the environment with the specified dimensions and settings. It sets up spaces for observations
         and actions based on the game rules, as well as initializing a renderer for graphical display.
         """
+        if hell_states is None:
+            hell_states = {}
         self.connect = connect
         self.width = width
         self.height = height
@@ -283,6 +293,9 @@ class ConnectGameEnv(gym.Env):
         self.reward_winner = reward_winner
         self.living_reward = living_reward
         self.reward_draw = reward_draw
+
+        self.hell_states = hell_states
+        self.hell_reward = hell_reward
 
         self.max_steps = max_steps
         self.current_step = 0

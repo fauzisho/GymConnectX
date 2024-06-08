@@ -254,7 +254,7 @@ def collect_results(q_table_files, num_training, num_exploit, num_trials, games_
 
 
 if __name__ == "__main__":
-    # play_with_q_table(file_name="q_table_player_2.csv")
+    play_with_q_table(file_name="q_table_player_2.csv")
 
     num_training = 30000  # Total number of games to evaluate
     num_exploit = 15000
@@ -266,23 +266,23 @@ if __name__ == "__main__":
     #                 num_trials=num_trials,
     #                 games_per_segment=games_per_segment)
 
-    q_table_files = [
-        'q_table_player_1_3000.csv',
-        'q_table_player_1_6000.csv',
-        'q_table_player_1_9000.csv',
-        'q_table_player_1_12000.csv',
-        'q_table_player_1_15000.csv',
-        'q_table_player_1_18000.csv',
-        'q_table_player_1_21000.csv',
-        'q_table_player_1_24000.csv',
-        'q_table_player_1_27000.csv',
-        'q_table_player_1_30000.csv',
-        'q_table_player_1_33000.csv',
-        'q_table_player_1_36000.csv',
-        'q_table_player_1_39000.csv',
-        'q_table_player_1_42000.csv',
-        'q_table_player_1_45000.csv'
-    ]
-
-    segmented_results = collect_results(q_table_files, num_training, num_exploit, num_trials, games_per_segment)
-    plot_results(segmented_results)
+    # q_table_files = [
+    #     'q_table_player_1_3000.csv',
+    #     'q_table_player_1_6000.csv',
+    #     'q_table_player_1_9000.csv',
+    #     'q_table_player_1_12000.csv',
+    #     'q_table_player_1_15000.csv',
+    #     'q_table_player_1_18000.csv',
+    #     'q_table_player_1_21000.csv',
+    #     'q_table_player_1_24000.csv',
+    #     'q_table_player_1_27000.csv',
+    #     'q_table_player_1_30000.csv',
+    #     'q_table_player_1_33000.csv',
+    #     'q_table_player_1_36000.csv',
+    #     'q_table_player_1_39000.csv',
+    #     'q_table_player_1_42000.csv',
+    #     'q_table_player_1_45000.csv'
+    # ]
+    #
+    # segmented_results = collect_results(q_table_files, num_training, num_exploit, num_trials, games_per_segment)
+    # plot_results(segmented_results)

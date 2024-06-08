@@ -1,11 +1,12 @@
 import random
 import csv
-from gymconnectx.envs import ConnectGameEnv
+import os
 
 
-class QLearningAgent:
-    def __init__(self, alpha=0.1, gamma=0.9, epsilon=0.1):
+class AgentQLearning:
+    def __init__(self, alpha=0.1, gamma=0.9, epsilon=0, role='player_1', ):
         self.q_table = {}  # Q-table initially empty
+        self.role = role  # Player role: 'player_1' or 'player_2'
         self.alpha = alpha  # Learning rate
         self.gamma = gamma  # Discount factor
         self.epsilon = epsilon  # Exploration rate
@@ -54,65 +55,44 @@ class QLearningAgent:
                 for action, q_value in actions.items():
                     writer.writerow([state, action, q_value])
 
+    @staticmethod
+    def load_q_table_from_csv(file_name="q_table_old.csv"):
+        """Load the Q-table from a CSV file."""
+        q_table = {}
+        if os.path.exists(file_name):
+            with open(file_name, 'r', newline='') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    state = row['state']
+                    action = int(row['action'])
+                    q_value = float(row['q_value'])
+                    if state not in q_table:
+                        q_table[state] = {}
+                    q_table[state][action] = q_value
+        return q_table
 
-def train_agent_env():
-    env = ConnectGameEnv(
-        connect=3,
-        width=3,
-        height=3,
-        reward_winner=3,
-        reward_loser=-3,
-        living_reward=-0.1,)
+    def test_agent_with_q_table(self, scenario_player_1_and_2, env, file_name):
+        q_table = self.load_q_table_from_csv(file_name)
+        self.q_table = q_table
 
-    agent = QLearningAgent()
-
-    for game in range(100):
         env.reset()
-        scenario_player_1_and_2 = [1, 0, 1, 0]
-        state = ""
-        action = -1
         while not env.is_done:
-            try:
-                if env.current_step == 4:
+            if env.current_step < 4:
+                action = scenario_player_1_and_2[env.current_step]  # based on scenario
+            else:
+                if env.get_current_player() != 1:
                     state = str(env.get_player_observations())
                     possible_action = env.get_moves()
-                    move = agent.choose_action(state, possible_action)
-                    action = move
+                    action = self.choose_action(state, possible_action)
                 else:
-                    if env.current_step >= 5:
-                        if 0 in env.get_moves():
-                            move = 0
-                        elif 1 in env.get_moves():
-                            move = 1
-                        else:
-                            move = 2
-                    elif env.get_current_player() == 1:
-                        move = scenario_player_1_and_2[env.current_step]
-                    else:
-                        move = scenario_player_1_and_2[env.current_step]
+                    # action = env.set_players(player_2_mode='human_gui')
+                    action = env.set_players(player_1_mode='human_gui')
 
-                next_state, rewards, done, _, info = env.step(move)
+            next_state, rewards, done, _, info = env.step(action)
+            env.render('terminal_display')
 
-                if done or env.get_current_player() == 2 and action != -1:
-                    env.render(mode='terminal_display')
-                    reward_player_1 = rewards['player_1']
-                    print(env.get_game_status())
-                    print(f'game: {game}, action: {action}, reward: {reward_player_1}')
-                    agent.update_q_value(state, action, reward_player_1, next_state)
-
-                if done:
-                    print("------------------------")
-                    break
-                else:
-                    env.current_step += 1
-
-            except Exception as e:
-                print(f"An error occurred: {str(e)}")
+            if done:
+                print(env.get_game_status())
                 break
-
-    # Save the Q-table to CSV after training
-    agent.save_q_table_to_csv()
-
-
-if __name__ == "__main__":
-    train_agent_env()
+            else:
+                env.current_step += 1
