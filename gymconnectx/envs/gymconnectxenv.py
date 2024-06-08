@@ -310,6 +310,20 @@ class ConnectGameEnv(gym.Env):
         self.renderer = PyGameRenderEnv(self, square_size, avatar_player_1, avatar_player_2)
         self.reset()
 
+    def can_opponent_win_next(self, current_player):
+        opponent = 1 - current_player
+        for col in range(self.width):
+            if self.board[col][self.height - 1] == -1:  # Check if the column is not full
+                row = self.height - 1
+                while row >= 0 and self.board[col][row] != -1:
+                    row -= 1
+                self.board[col][row] = opponent
+                if self.does_move_win(col, row):
+                    self.board[col][row] = -1  # Reset to original state
+                    return True
+                self.board[col][row] = -1  # Reset to original state
+        return False
+
     def step(self, movecol):
         """
         Processes a move made by the current player by placing a chip in the specified column, then checks for game termination.
@@ -338,15 +352,25 @@ class ConnectGameEnv(gym.Env):
             row -= 1
         row += 1
 
+        opponent_can_win_next = self.can_opponent_win_next(self.current_player)
+        print(f'opponent_can_win_next : {opponent_can_win_next}')
+
         self.board[movecol][row] = self.current_player
         self.current_player = 1 - self.current_player
 
         self.winner, reward_vector = self.check_for_episode_termination(movecol, row)
 
         info = {'legal_actions': self.get_moves(), 'next_player': self.current_player + 1}
-        reward_players = {'player_1': reward_vector[0], 'player_2': reward_vector[1]}
         self.is_done = self.winner is not None
         self.renderer.update_display()
+
+        if opponent_can_win_next:
+            if self.current_player == 0:
+                reward_vector[0] = -1  # Penalize Player 1 for leaving a winning move for Player 2
+            else:
+                reward_vector[1] = -1  # Penalize Player 2 for leaving a winning move for Player 1\
+
+        reward_players = {'player_1': reward_vector[0], 'player_2': reward_vector[1]}
 
         observations = self.get_player_observations()
         terminated = self.is_done

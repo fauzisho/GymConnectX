@@ -24,8 +24,8 @@ def train_agent_env():
     scenario = Scenario_3x3()
     valid_scenario_train = [scenario.generate_permutations()[0]]
     for n in range(0, len(valid_scenario_train)):
-        agent = AgentQLearning(epsilon=0.1)
-        for game in range(5000):
+        agent = AgentQLearning(epsilon=0.5)
+        for game in range(10000):
             env.reset()
             scenario_player_1_and_2 = scenario.generate_permutations()[n]
             state = ""
@@ -48,12 +48,14 @@ def train_agent_env():
                         move = agent.choose_action(state, possible_action)
                         action = move
 
-                    if env.get_current_player() != 1:
+                    if env.get_current_player() == 1:
                         player_do_action = "player_1"
                     else:
                         player_do_action = "player_2"
 
+                    print(f'player :{player_do_action} : action {action}')
                     next_state, rewards, done, _, info = env.step(action)
+                    print(f'game: {game}, action: {action}, reward: {rewards}')
 
                     env.render(mode='terminal_display')
                     if env.current_step >= 4:
@@ -79,9 +81,9 @@ def train_agent_env():
 
 
 if __name__ == "__main__":
-    # train_agent_env()
-    valid_scenario_train = Scenario_3x3().generate_permutations()[0]
-    agent = AgentQLearning(epsilon=0)
-    agent.test_agent_with_q_table(scenario_player_1_and_2=valid_scenario_train,
-                                  env=env_3x3(),
-                                  file_name="case_1_connect3_3x3.csv")
+    train_agent_env()
+    # valid_scenario_train = Scenario_3x3().generate_permutations()[0]
+    # agent = AgentQLearning(epsilon=0)
+    # agent.test_agent_with_q_table(scenario_player_1_and_2=valid_scenario_train,
+    #                               env=env_3x3(),
+    #                               file_name="case_1_connect3_3x3.csv")
