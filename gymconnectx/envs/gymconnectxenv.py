@@ -48,8 +48,6 @@ class PyGameRenderEnv:
         """Check if the string is in base64 format."""
         if string.startswith('data:image/'):
             return True
-        # Additional checks can be added to validate base64 using regex
-        # This regex checks if it contains only base64 characters and ends with '='
         return bool(re.match('^[A-Za-z0-9+/]+={0,2}$', string.split(',')[-1]))
 
     def is_path(self, string):
@@ -101,11 +99,9 @@ class PyGameRenderEnv:
                 color = self.colors['black'] if piece == -1 else self.colors['silver'] if piece == 0 else self.colors[
                     'gold']
 
-                # Center coordinates for the circle
                 center_x = int(c * self.square_size + self.square_size / 2)
                 center_y = int((self.game_env.height - r) * self.square_size + self.square_size / 2)
 
-                # Draw the circle for the game piece
                 pygame.draw.circle(self.screen, color, (center_x, center_y), self.circle_radius)
                 self.show_avatar(piece, color, center_x, center_y)
 
@@ -129,14 +125,12 @@ class PyGameRenderEnv:
                 center_x (int): The x-coordinate of the center where the avatar should be placed.
                 center_y (int): The y-coordinate of the center where the avatar should be placed.
         """
-        # Determine the correct avatar based on the piece
         avatar = None
         if piece == 0:
             avatar = self.avatar_player_1
         elif piece == 1:
             avatar = self.avatar_player_2
 
-        # If a valid avatar is found, draw it centered at the specified location
         if avatar:
             avatar_rect = avatar.get_rect()
             avatar_rect.center = (center_x, center_y)
@@ -256,12 +250,10 @@ class ConnectGameEnv(gym.Env):
                  height=7,
                  reward_winner=1,
                  reward_loser=-1,
-                 living_reward=0,
+                 reward_living=0,
                  reward_draw=0.5,
-                 reward_hell=-1,
+                 reward_hell=-0.5,
                  max_steps=100,
-                 hell_states=None,
-                 hell_reward=0,
                  delay=100,
                  square_size=100,
                  avatar_player_1=None,
@@ -274,30 +266,28 @@ class ConnectGameEnv(gym.Env):
         :param height: Height of the game board (number of rows, default is 7).
         :param reward_winner: Reward given to the winner at the end of the game (default is 1).
         :param reward_loser: Reward (penalty) given to the loser at the end of the game (default is -1).
-        :param living_reward: Reward given at each step of the game, applicable to all ongoing games (default is 0).
+        :param reward_living: Reward given at each step of the game, applicable to all ongoing games (default is 0).
+        :param reward_draw: Reward given to both players in case of a draw (default is 0).
+        :param reward_hell: The reward given to the player if they allow the opponent's chance to win in the next move.
         :param max_steps: Maximum number of steps the game can take before ending (default is 100).
         :param delay: Time delay (in milliseconds) between moves, primarily used for GUI purposes (default is 100).
+        :param square_size: GUI size of each cell
         :param avatar_player_1: avatar image player 1 base64/path
         :param avatar_player_2: avatar image player 2 base64/path
-        :param reward_draw: Reward given to both players in case of a draw (default is 0).
 
         Initializes the environment with the specified dimensions and settings. It sets up spaces for observations
         and actions based on the game rules, as well as initializing a renderer for graphical display.
         """
-        if hell_states is None:
-            hell_states = {}
+
         self.connect = connect
         self.width = width
         self.height = height
 
         self.reward_loser = reward_loser
         self.reward_winner = reward_winner
-        self.living_reward = living_reward
+        self.reward_living = reward_living
         self.reward_draw = reward_draw
         self.reward_hell = reward_hell
-
-        self.hell_states = hell_states
-        self.hell_reward = hell_reward
 
         self.max_steps = max_steps
         self.current_step = 0
@@ -315,15 +305,15 @@ class ConnectGameEnv(gym.Env):
     def can_opponent_win_next(self, current_player):
         opponent = 1 - current_player
         for col in range(self.width):
-            if self.board[col][self.height - 1] == -1:  # Check if the column is not full
+            if self.board[col][self.height - 1] == -1:
                 row = self.height - 1
                 while row >= 0 and self.board[col][row] != -1:
                     row -= 1
                 self.board[col][row] = opponent
                 if self.does_move_win(col, row):
-                    self.board[col][row] = -1  # Reset to original state
+                    self.board[col][row] = -1
                     return True
-                self.board[col][row] = -1  # Reset to original state
+                self.board[col][row] = -1
         return False
 
     def step(self, movecol):
@@ -367,9 +357,9 @@ class ConnectGameEnv(gym.Env):
 
         if opponent_can_win_next:
             if self.current_player == 0:
-                reward_vector[0] = self.reward_hell  # Penalize Player 1 for leaving a winning move for Player 2
+                reward_vector[0] = self.reward_hell
             else:
-                reward_vector[1] = self.reward_hell  # Penalize Player 2 for leaving a winning move for Player 1\
+                reward_vector[1] = self.reward_hell
 
         reward_players = {'player_1': reward_vector[0], 'player_2': reward_vector[1]}
 
@@ -470,7 +460,7 @@ class ConnectGameEnv(gym.Env):
                 - The reward vector (List[int]) contains the rewards for both players. The first element is
                   the reward for Player 1, and the second element is the reward for Player 2.
         """
-        winner, reward_vector = self.winner, [self.living_reward, self.living_reward]
+        winner, reward_vector = self.winner, [self.reward_living, self.reward_living]
         if self.does_move_win(movecol, row):
             winner = 1 - self.current_player
             if winner == 0:
@@ -669,6 +659,13 @@ class ConnectGameEnv(gym.Env):
             return f"Player {self.winner + 1} wins!"
 
     def get_game_status_player(self):
+        """
+               Get the status of the game.
+
+               Returns:
+                       - (-1) if game draw
+                       - (1) or (2) game winner
+               """
         if self.winner == -1:
             return -1
         else:

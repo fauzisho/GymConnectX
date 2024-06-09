@@ -62,7 +62,7 @@ def train_agent_env():
         height=3,
         reward_winner=3,
         reward_loser=-3,
-        living_reward=-0.1,)
+        reward_living=-0.1,)
 
     agent = QLearningAgent()
 

@@ -91,7 +91,7 @@ def train_agent_env():
         height=3,
         reward_winner=3,
         reward_loser=-3,
-        living_reward=-0.1, )
+        reward_living=-0.1, )
 
     agent = QLearningAgent()
 
@@ -140,7 +140,7 @@ def play_with_q_table(file_name="q_table.csv"):
         height=3,
         reward_winner=3,
         reward_loser=-3,
-        living_reward=-0.1,)
+        reward_living=-0.1,)
 
     q_table = QLearningAgent.load_q_table_from_csv(file_name)
     agent = QLearningAgent(q_table=q_table, epsilon=0.0)  # epsilon=0.0 to ensure no exploration

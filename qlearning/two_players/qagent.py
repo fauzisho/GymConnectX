@@ -105,7 +105,7 @@ def play_with_q_table(file_name="q_table_player_2.csv"):
 
 
 def ConnectEnv():
-    return ConnectGameEnv(connect=3, width=3, height=3, reward_winner=1, reward_loser=-1, living_reward=0)
+    return ConnectGameEnv(connect=3, width=3, height=3, reward_winner=1, reward_loser=-1, reward_living=0)
 
 
 def train_agent_env(num_training, num_trials, num_exploit, games_per_segment):

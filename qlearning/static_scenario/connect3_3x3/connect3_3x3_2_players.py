@@ -16,7 +16,7 @@ def env_3x3():
         reward_loser=-3,
         reward_draw=1,
         reward_hell=- 1,
-        living_reward=-0.1, )
+        reward_living=-0.1, )
     return env
 
 

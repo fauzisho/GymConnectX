@@ -18,7 +18,7 @@ def env_connected4_6x7():
         reward_loser=-6,
         reward_draw=1,
         reward_hell=-1,
-        living_reward=-0.1, )
+        reward_living=-0.1, )
     return env
 
 
