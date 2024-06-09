@@ -1,18 +1,19 @@
 from gymconnectx.envs import ConnectGameEnv
 from qlearning.static_scenario.AgentQLearning import AgentQLearning
-from qlearning.static_scenario.connect3_3x3.scenario_3x3 import Scenario_3x3
 import pandas as pd
+
+from qlearning.static_scenario.connect4_6x7.scenario_connected4_6x7 import Scenario_Connected4_6x7
 
 
 def hyperParameter():
     pass
 
 
-def env_3x3():
+def env_connected4_6x7():
     env = ConnectGameEnv(
-        connect=3,
-        width=3,
-        height=3,
+        connect=4,
+        width=7,
+        height=6,
         reward_winner=3,
         reward_loser=-6,
         reward_draw=1,
@@ -22,16 +23,15 @@ def env_3x3():
 
 
 def train_agent_env():
-    env = env_3x3()
-    scenario = Scenario_3x3()
-    # valid_scenario_train = [scenario.generate_permutations()[0],[scenario.generate_permutations()[1]]]
-    valid_scenario_train = scenario.generate_permutations()
+    env = env_connected4_6x7()
+    scenario = Scenario_Connected4_6x7()
+    valid_scenario_train = [scenario.generate_permutations()[0]]
 
     agent1 = AgentQLearning(epsilon=0.1, role='player_1')
     agent2 = AgentQLearning(epsilon=0.1, role='player_2')
 
     for n in range(0, len(valid_scenario_train)):
-        for game in range(1000):
+        for game in range(250):
             env.reset()
             scenario_player_1_and_2 = scenario.generate_permutations()[n]
             last_state = ""
@@ -41,7 +41,7 @@ def train_agent_env():
                 try:
                     current_player = 'player_1' if env.get_current_player() == 1 else 'player_2'
                     agent = agent1 if current_player == 'player_1' else agent2
-                    if env.current_step < 4:
+                    if env.current_step < 6:
                         state = str(env.get_player_observations())
                         action = scenario_player_1_and_2[env.current_step]  # based on scenario
                     else:
@@ -53,11 +53,8 @@ def train_agent_env():
                             action = env.get_action_random()
 
                     next_state, rewards, done, _, info = env.step(action)
-                    print(f'game: {game}, action: {action}, reward: {rewards}')
 
-                    env.render(mode='terminal_display')
-
-                    if env.current_step >= 4 and current_player == 'player_1':
+                    if env.current_step >= 6 and current_player == 'player_1':
                         agent.update_q_value(state, action, rewards[current_player], next_state)
 
                     if done:
@@ -78,14 +75,14 @@ def train_agent_env():
                 except Exception as e:
                     print(f"An error occurred: {str(e)}")
                     break
-        agent1.save_q_table_to_csv(f"case_{n + 1}_player_1_connect3_3x3.csv")
-        agent2.save_q_table_to_csv(f"case_{n + 1}_player_2_connect3_3x3.csv")
+        agent1.save_q_table_to_csv(f"1000/case_{n + 1}_player_1_connect4_6x7.csv")
+        agent2.save_q_table_to_csv(f"1000/case_{n + 1}_player_2_connect4_6x7.csv")
 
 
 def test_agent_with_q_table(agent, scenario_player_1_and_2, env):
     env.reset()
     while not env.is_done:
-        if env.current_step < 4:
+        if env.current_step < 6:
             action = scenario_player_1_and_2[env.current_step]  # based on scenario
         else:
             if env.get_current_player() == 1:
@@ -105,25 +102,23 @@ def test_agent_with_q_table(agent, scenario_player_1_and_2, env):
 
 
 def test_with_valid_scenario():
-    # valid_scenario_train = [Scenario_3x3().generate_permutations()[0]]
     results = []
     lose_details = []
 
-    # Assuming Scenario_3x3 and AgentQLearning are already defined elsewhere
-    valid_scenario_train = Scenario_3x3().generate_permutations()
+    valid_scenario_train = Scenario_Connected4_6x7().generate_permutations()
     for i in range(len(valid_scenario_train)):
         win = 0
         draw = 0
         lose = 0
 
         for n in range(25):
-            # q_table = AgentQLearning().load_q_table_from_csv(f'case_{i + 1}_player_1_connect3_3x3.csv')
-            q_table = AgentQLearning().load_q_table_from_csv(f'case_78_player_1_connect3_3x3.csv')
+            # q_table = AgentQLearning().load_q_table_from_csv(f'case_{i + 1}_player_1_connect4_4x4.csv')
+            q_table = AgentQLearning().load_q_table_from_csv(f'case_117390_player_1_connect4_6x7.csv')
             agent = AgentQLearning(epsilon=0.0, role='player_1', q_table=q_table)
             status, obs_lose = test_agent_with_q_table(
                 agent=agent,
                 scenario_player_1_and_2=valid_scenario_train[i],
-                env=env_3x3())
+                env=env_connected4_6x7())
 
             if status == -1:
                 draw += 1
@@ -146,7 +141,7 @@ def test_with_valid_scenario():
 
 
 def play_with_q_table(scenario=None, file_name=""):
-    env = env_3x3()
+    env = env_connected4_6x7()
     q_table = AgentQLearning().load_q_table_from_csv(file_name)
     agent = AgentQLearning(epsilon=0.0, role='player_1', q_table=q_table)
     env.reset()
@@ -160,7 +155,7 @@ def play_with_q_table(scenario=None, file_name=""):
             else:
                 move = env.set_players(player_2_mode='human_gui')
         else:
-            if env.current_step < 4:
+            if env.current_step < 6:
                 move = scenario[env.current_step]
             else:
                 if env.get_current_player() == 1:
@@ -183,8 +178,7 @@ def play_with_q_table(scenario=None, file_name=""):
 if __name__ == "__main__":
     # train_agent_env()
     # test_with_valid_scenario()
-    # valid_scenario = Scenario_3x3().generate_permutations()[2]  # always win
-    valid_scenario = Scenario_3x3().generate_permutations()[0]  # 50%
+    valid_scenario = Scenario_Connected4_6x7().generate_permutations()[0]
     play_with_q_table(
         scenario=valid_scenario,
-        file_name=f'1000/case_78_player_1_connect3_3x3.csv')
+        file_name="case_1_player_1_connect4_6x7.csv")
