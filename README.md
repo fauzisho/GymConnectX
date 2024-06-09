@@ -113,7 +113,9 @@ The `ConnectGameEnv` class is designed to simulate a Connect 4-like game environ
 - **height** (int): The height of the game board, measured in number of rows. Default is `7`.
 - **reward_winner** (float): The reward given to the winner at the end of the game. Default is `1`.
 - **reward_loser** (float): The penalty (or negative reward) given to the loser at the end of the game. Default is `-1`.
-- **living_reward** (float): A reward given at each step of the game, applicable to all ongoing games. Default is `0`.
+- **reward_living** (float): A reward given at each step of the game, applicable to all ongoing games. Default is `0`.
+- **reward_draw** (float): A reward given to both players in case of a draw. Default is `0`.
+- **reward_hell** (float): The reward given to the player if they allow the opponent's chance to win in the next move. Default is `-0.5`.
 - **max_steps** (int): The maximum number of steps the game can take before it ends. Default is `100`.
 - **delay** (int): Time delay (in milliseconds) between moves, primarily used for GUI purposes. Default is `100`.
 - **square_size** (int): Size of the squares in the GUI. Default is `100`.

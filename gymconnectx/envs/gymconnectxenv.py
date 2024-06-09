@@ -44,16 +44,10 @@ class PyGameRenderEnv:
         self.avatar_player_1 = self.load_avatar(avatar_player_1)
         self.avatar_player_2 = self.load_avatar(avatar_player_2)
 
-    def is_url(self, string):
-        """Check if the string is a URL."""
-        return string.startswith(('http://', 'https://'))
-
     def is_base64(self, string):
         """Check if the string is in base64 format."""
         if string.startswith('data:image/'):
             return True
-        # Additional checks can be added to validate base64 using regex
-        # This regex checks if it contains only base64 characters and ends with '='
         return bool(re.match('^[A-Za-z0-9+/]+={0,2}$', string.split(',')[-1]))
 
     def is_path(self, string):
@@ -105,11 +99,9 @@ class PyGameRenderEnv:
                 color = self.colors['black'] if piece == -1 else self.colors['silver'] if piece == 0 else self.colors[
                     'gold']
 
-                # Center coordinates for the circle
                 center_x = int(c * self.square_size + self.square_size / 2)
                 center_y = int((self.game_env.height - r) * self.square_size + self.square_size / 2)
 
-                # Draw the circle for the game piece
                 pygame.draw.circle(self.screen, color, (center_x, center_y), self.circle_radius)
                 self.show_avatar(piece, color, center_x, center_y)
 
@@ -133,14 +125,12 @@ class PyGameRenderEnv:
                 center_x (int): The x-coordinate of the center where the avatar should be placed.
                 center_y (int): The y-coordinate of the center where the avatar should be placed.
         """
-        # Determine the correct avatar based on the piece
         avatar = None
         if piece == 0:
             avatar = self.avatar_player_1
         elif piece == 1:
             avatar = self.avatar_player_2
 
-        # If a valid avatar is found, draw it centered at the specified location
         if avatar:
             avatar_rect = avatar.get_rect()
             avatar_rect.center = (center_x, center_y)
@@ -255,8 +245,19 @@ class PyGameRenderEnv:
 
 
 class ConnectGameEnv(gym.Env):
-    def __init__(self, connect=4, width=7, height=7, reward_winner=1, reward_loser=-1, living_reward=0, reward_draw=0.5,
-                 max_steps=100, delay=100, square_size=100, avatar_player_1=None, avatar_player_2=None):
+    def __init__(self, connect=4,
+                 width=7,
+                 height=7,
+                 reward_winner=1,
+                 reward_loser=-1,
+                 reward_living=0,
+                 reward_draw=0.5,
+                 reward_hell=-0.5,
+                 max_steps=100,
+                 delay=100,
+                 square_size=100,
+                 avatar_player_1=None,
+                 avatar_player_2=None):
         """
         Initializes a new ConnectGameEnv, which is a gaming environment for playing games like Connect Four.
 
@@ -265,24 +266,28 @@ class ConnectGameEnv(gym.Env):
         :param height: Height of the game board (number of rows, default is 7).
         :param reward_winner: Reward given to the winner at the end of the game (default is 1).
         :param reward_loser: Reward (penalty) given to the loser at the end of the game (default is -1).
-        :param living_reward: Reward given at each step of the game, applicable to all ongoing games (default is 0).
+        :param reward_living: Reward given at each step of the game, applicable to all ongoing games (default is 0).
+        :param reward_draw: Reward given to both players in case of a draw (default is 0).
+        :param reward_hell: The reward given to the player if they allow the opponent's chance to win in the next move.
         :param max_steps: Maximum number of steps the game can take before ending (default is 100).
         :param delay: Time delay (in milliseconds) between moves, primarily used for GUI purposes (default is 100).
+        :param square_size: GUI size of each cell
         :param avatar_player_1: avatar image player 1 base64/path
         :param avatar_player_2: avatar image player 2 base64/path
-        :param reward_draw: Reward given to both players in case of a draw (default is 0).
 
         Initializes the environment with the specified dimensions and settings. It sets up spaces for observations
         and actions based on the game rules, as well as initializing a renderer for graphical display.
         """
+
         self.connect = connect
         self.width = width
         self.height = height
 
         self.reward_loser = reward_loser
         self.reward_winner = reward_winner
-        self.living_reward = living_reward
+        self.reward_living = reward_living
         self.reward_draw = reward_draw
+        self.reward_hell = reward_hell
 
         self.max_steps = max_steps
         self.current_step = 0
@@ -297,6 +302,20 @@ class ConnectGameEnv(gym.Env):
         self.renderer = PyGameRenderEnv(self, square_size, avatar_player_1, avatar_player_2)
         self.reset()
 
+    def can_opponent_win_next(self, current_player):
+        opponent = 1 - current_player
+        for col in range(self.width):
+            if self.board[col][self.height - 1] == -1:
+                row = self.height - 1
+                while row >= 0 and self.board[col][row] != -1:
+                    row -= 1
+                self.board[col][row] = opponent
+                if self.does_move_win(col, row):
+                    self.board[col][row] = -1
+                    return True
+                self.board[col][row] = -1
+        return False
+
     def step(self, movecol):
         """
         Processes a move made by the current player by placing a chip in the specified column, then checks for game termination.
@@ -306,11 +325,11 @@ class ConnectGameEnv(gym.Env):
         :return: A tuple containing four elements:
             - Observations: Current state of the board from the perspective of both players.
             - Reward_players: A dictionary detailing the rewards for player 1 and player 2 based on the latest move.
-            - terminated: Boolean value indicating whether the game has ended (either by a win or a full board).
+            - terminated: Boolean value indicating whether the game has ended (either by a win or a single_player board).
             - Info: A dictionary containing additional information such as legal actions for the next move and the next player.
 
         Raises:
-            IndexError: If the move is invalid (e.g., the column is full or out of bounds).
+            IndexError: If the move is invalid (e.g., the column is single_player or out of bounds).
 
         This method updates the game state by inserting a chip into the chosen column, checks for a winner, updates the current
         player, and calculates the rewards based on the state of the game. It also updates the display through the renderer and
@@ -318,12 +337,14 @@ class ConnectGameEnv(gym.Env):
         """
         if not (0 <= movecol < self.width and self.board[movecol][self.height - 1] == -1):
             raise IndexError(
-                f'Invalid move. tried to place a chip on column {movecol} which is already full. Valid moves are: {self.get_moves()}')
+                f'Invalid move. tried to place a chip on column {movecol} which is already single_player. Valid moves are: {self.get_moves()}')
 
         row = self.height - 1
         while row >= 0 and self.board[movecol][row] == -1:
             row -= 1
         row += 1
+
+        opponent_can_win_next = self.can_opponent_win_next(self.current_player)
 
         self.board[movecol][row] = self.current_player
         self.current_player = 1 - self.current_player
@@ -331,9 +352,16 @@ class ConnectGameEnv(gym.Env):
         self.winner, reward_vector = self.check_for_episode_termination(movecol, row)
 
         info = {'legal_actions': self.get_moves(), 'next_player': self.current_player + 1}
-        reward_players = {'player_1': reward_vector[0], 'player_2': reward_vector[1]}
         self.is_done = self.winner is not None
         self.renderer.update_display()
+
+        if opponent_can_win_next:
+            if self.current_player == 0:
+                reward_vector[0] = self.reward_hell
+            else:
+                reward_vector[1] = self.reward_hell
+
+        reward_players = {'player_1': reward_vector[0], 'player_2': reward_vector[1]}
 
         observations = self.get_player_observations()
         terminated = self.is_done
@@ -432,7 +460,7 @@ class ConnectGameEnv(gym.Env):
                 - The reward vector (List[int]) contains the rewards for both players. The first element is
                   the reward for Player 1, and the second element is the reward for Player 2.
         """
-        winner, reward_vector = self.winner, [self.living_reward, self.living_reward]
+        winner, reward_vector = self.winner, [self.reward_living, self.reward_living]
         if self.does_move_win(movecol, row):
             winner = 1 - self.current_player
             if winner == 0:
@@ -520,7 +548,6 @@ class ConnectGameEnv(gym.Env):
         Returns:
             int: The move made by the current player based on their mode.
         """
-        print(f"Player: {self.get_current_player()}, ")
         if self.current_player == 0:
             move = self.set_switch_player(player_1_mode)
         else:
@@ -597,7 +624,7 @@ class ConnectGameEnv(gym.Env):
                 step_move = int(input("Enter your move (odd column number): "))
                 if step_move not in self.get_moves():
                     self.renderer.show_alert("Please select another column.")
-                    print("That column is full or invalid. Try again.")
+                    print("That column is single_player or invalid. Try again.")
             except ValueError:
                 print("Please enter a valid integer.")
 
@@ -630,3 +657,16 @@ class ConnectGameEnv(gym.Env):
             return "The game is a draw."
         else:
             return f"Player {self.winner + 1} wins!"
+
+    def get_game_status_player(self):
+        """
+               Get the status of the game.
+
+               Returns:
+                       - (-1) if game draw
+                       - (1) or (2) game winner
+               """
+        if self.winner == -1:
+            return -1
+        else:
+            return self.winner + 1

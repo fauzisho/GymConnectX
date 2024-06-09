@@ -1,5 +1,6 @@
 import gymconnectx
 
+
 def run_game_env():
     env = gymconnectx.gym.make('gymconnectx/ConnectGameEnv',
                                connect=4,
@@ -7,13 +8,19 @@ def run_game_env():
                                height=6,
                                reward_winner=1,
                                reward_loser=-1,
-                               living_reward=0, max_steps=100, delay=100, square_size=100,
-                               avatar_player_1='img_cat.png', avatar_player_2='img_cat.png')
+                               reward_living=0,
+                               reward_draw=0.5,
+                               reward_hell=-0.5,
+                               max_steps=100,
+                               delay=100,
+                               square_size=100,
+                               avatar_player_1='img_cat.png',
+                               avatar_player_2='img_dog.png')
     env.reset()
 
     while not env.is_done and env.current_step < env.max_steps:
         try:
-            move = env.set_players(player_1_mode='human_gui', player_2_mode='human_gui')
+            move = env.set_players(player_1_mode='random', player_2_mode='random')
             observations, rewards, done, _, info = env.step(move)
             env.render(mode='terminal_display')
             env.render(mode='gui_update_display')
