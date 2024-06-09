@@ -258,6 +258,7 @@ class ConnectGameEnv(gym.Env):
                  reward_loser=-1,
                  living_reward=0,
                  reward_draw=0.5,
+                 reward_hell=-1,
                  max_steps=100,
                  hell_states=None,
                  hell_reward=0,
@@ -293,6 +294,7 @@ class ConnectGameEnv(gym.Env):
         self.reward_winner = reward_winner
         self.living_reward = living_reward
         self.reward_draw = reward_draw
+        self.reward_hell = reward_hell
 
         self.hell_states = hell_states
         self.hell_reward = hell_reward
@@ -353,7 +355,6 @@ class ConnectGameEnv(gym.Env):
         row += 1
 
         opponent_can_win_next = self.can_opponent_win_next(self.current_player)
-        print(f'opponent_can_win_next : {opponent_can_win_next}')
 
         self.board[movecol][row] = self.current_player
         self.current_player = 1 - self.current_player
@@ -366,9 +367,9 @@ class ConnectGameEnv(gym.Env):
 
         if opponent_can_win_next:
             if self.current_player == 0:
-                reward_vector[0] = -1  # Penalize Player 1 for leaving a winning move for Player 2
+                reward_vector[0] = self.reward_hell  # Penalize Player 1 for leaving a winning move for Player 2
             else:
-                reward_vector[1] = -1  # Penalize Player 2 for leaving a winning move for Player 1\
+                reward_vector[1] = self.reward_hell  # Penalize Player 2 for leaving a winning move for Player 1\
 
         reward_players = {'player_1': reward_vector[0], 'player_2': reward_vector[1]}
 
@@ -557,7 +558,6 @@ class ConnectGameEnv(gym.Env):
         Returns:
             int: The move made by the current player based on their mode.
         """
-        print(f"Player: {self.get_current_player()}, ")
         if self.current_player == 0:
             move = self.set_switch_player(player_1_mode)
         else:
@@ -667,3 +667,9 @@ class ConnectGameEnv(gym.Env):
             return "The game is a draw."
         else:
             return f"Player {self.winner + 1} wins!"
+
+    def get_game_status_player(self):
+        if self.winner == -1:
+            return -1
+        else:
+            return self.winner + 1
