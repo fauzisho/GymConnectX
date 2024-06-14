@@ -9,9 +9,16 @@ class Scenario_3x3(ScenarioBase):
                          scenario_start_step_default=4,
                          connected_x=3)
 
+class Scenario_3x3_step_2(ScenarioBase):
+    def __init__(self):
+        super().__init__(list_action=[0, 1, 2],
+                         scenario_start_step_default=2,
+                         connected_x=3)
+
 
 if __name__ == "__main__":
     scenario = Scenario_3x3()
+    # scenario = Scenario_3x3_step_2()
 
     valid_combos = scenario.generate_permutations()
     result, combo = scenario.check_combos(valid_combos)
