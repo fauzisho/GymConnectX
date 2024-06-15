@@ -309,10 +309,13 @@ class ConnectGameEnv(gym.Env):
     def can_opponent_win_next(self, current_player):
         opponent = 1 - current_player
         for col in range(self.width):
-            if self.board[col][self.height - 1] == -1:
-                row = self.height - 1
-                while row >= 0 and self.board[col][row] != -1:
-                    row -= 1
+            # Find the first available row from the bottom up
+            row = 0
+            while row < self.height and self.board[col][row] != -1:
+                row += 1
+
+            # Only place piece if there's a free spot
+            if row < self.height:
                 self.board[col][row] = opponent
                 if self.does_move_win(col, row):
                     self.board[col][row] = -1
