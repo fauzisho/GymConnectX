@@ -373,8 +373,6 @@ class ConnectGameEnv(gym.Env):
             row -= 1
         row += 1
 
-        opponent_can_win_next = self.can_opponent_win_next(self.current_player)
-
         self.board[movecol][row] = self.current_player
 
         self.winner, reward_vector = self.check_for_episode_termination(movecol, row)
@@ -402,6 +400,7 @@ class ConnectGameEnv(gym.Env):
             else:
                 reward_vector[1] = self.reward_win_prob
 
+        opponent_can_win_next = self.can_opponent_win_next(self.current_player)
         if opponent_can_win_next:
             if self.current_player == 0:
                 reward_vector[0] = self.reward_hell
@@ -510,7 +509,7 @@ class ConnectGameEnv(gym.Env):
         """
         winner, reward_vector = self.winner, [self.reward_living, self.reward_living]
         if self.does_move_win(movecol, row):
-            winner = 1 - self.current_player
+            winner = self.current_player
             if winner == 0:
                 reward_vector = [self.reward_winner, self.reward_loser]
             elif winner == 1:

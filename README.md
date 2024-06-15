@@ -3,7 +3,7 @@
 This repository contains the implementation of a Connect Game Environment using OpenAI's Gym and Pygame for rendering. The environment supports various game modes like Connect 4 and includes features like GUI display, avatar support for players, and different modes of player interaction (human, random).
 
 
-![demo.png](https://github.com/fauzisho/GymConnectX/blob/main/demo.png)
+![demo.png](demo.png)
 
 ## Table of Contents
 
@@ -113,18 +113,13 @@ move = env.set_players(player_1_mode='human_gui', player_2_mode='human_gui')
 
 The `ConnectGameEnv` class is designed to simulate a Connect 4-like game environment, allowing customization through various parameters to accommodate different rules and interfaces. Below are the parameters it accepts:
 
-## Parameters
+Please use this bibtex if you want to cite this repository in your publications:
 
-- **connect** (int): The number of consecutive tokens required to win. Default is `4`.
-- **width** (int): The width of the game board, measured in number of columns. Default is `7`.
-- **height** (int): The height of the game board, measured in number of rows. Default is `7`.
-- **reward_winner** (float): The reward given to the winner at the end of the game. Default is `1`.
-- **reward_loser** (float): The penalty (or negative reward) given to the loser at the end of the game. Default is `-1`.
-- **reward_living** (float): A reward given at each step of the game, applicable to all ongoing games. Default is `0`.
-- **reward_draw** (float): A reward given to both players in case of a draw. Default is `0`.
-- **reward_hell** (float): The reward given to the player if they allow the opponent's chance to win in the next move. Default is `-0.5`.
-- **max_steps** (int): The maximum number of steps the game can take before it ends. Default is `100`.
-- **delay** (int): Time delay (in milliseconds) between moves, primarily used for GUI purposes. Default is `100`.
-- **square_size** (int): Size of the squares in the GUI. Default is `100`.
-- **avatar_player_1** (string): Base64/path format avatar image for player 1. This is used in the GUI.
-- **avatar_player_2** (string): Base64/path format avatar image for player 2. This is used in the GUI.
+    @misc{pytorchaaac,
+      author = {Sholichin, Fauzi},
+      title = {ConnectX Game Environment},
+      year = {2024},
+      publisher = {GitHub},
+      journal = {GitHub repository},
+      howpublished = {\url{https://github.com/fauzisho/GymConnectX}},
+    }
