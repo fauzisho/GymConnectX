@@ -1,13 +1,14 @@
 import base64
+import io
 import os
 import re
-from typing import List
-import io
-import gym
-from gym.spaces import Box, Discrete, Tuple
-import pygame
 import sys
+from typing import List
+
+import gym
 import numpy as np
+import pygame
+from gym.spaces import Tuple, Box, Discrete
 
 
 class PyGameRenderEnv:
@@ -259,7 +260,8 @@ class ConnectGameEnv(gym.Env):
                  delay=100,
                  square_size=100,
                  avatar_player_1=None,
-                 avatar_player_2=None):
+                 avatar_player_2=None,
+                 obs_number=False):
         """
         Initializes a new ConnectGameEnv, which is a gaming environment for playing games like Connect Four.
 
@@ -297,11 +299,12 @@ class ConnectGameEnv(gym.Env):
         self.current_step = 0
         self.is_done = False
 
+        self.obs_number = obs_number
+
         self.delay = delay
 
         self.observation_space = Box(low=0, high=255, shape=(height, width, 1), dtype=np.uint8)
-        self.action_space = Tuple([Discrete(self.width) for _ in range(2)])
-        self.state_space_size = (self.height * self.width) ** 3
+        self.action_space = Discrete(self.width)
 
         self.renderer = PyGameRenderEnv(self, square_size, avatar_player_1, avatar_player_2)
         self.reset()
@@ -410,10 +413,10 @@ class ConnectGameEnv(gym.Env):
         reward_players = {'player_1': reward_vector[0], 'player_2': reward_vector[1]}
 
         self.current_player = 1 - self.current_player
-        observations = self.get_player_observations()
+
         terminated = self.is_done
 
-        return observations, reward_players, terminated, False, info
+        return self.get_obs(), reward_players, terminated, False, info
 
     def reset(self) -> List[np.ndarray]:
         """
@@ -432,7 +435,7 @@ class ConnectGameEnv(gym.Env):
         self.current_step = 0
         self.is_done = False
         self.renderer.update_display()
-        return self.get_player_observations()
+        return self.get_obs()
 
     def render(self, mode='terminal_display'):
         """
@@ -474,6 +477,13 @@ class ConnectGameEnv(gym.Env):
         """
         self.renderer.stop()
 
+    def get_obs(self):
+        if self.obs_number:
+            observations = self.get_player_observations_number().flatten()
+        else:
+            observations = self.get_player_observations()
+        return observations
+
     def get_player_observations(self) -> np.ndarray:
         """
            Get the observations of the current game state from the perspective of the players.
@@ -488,6 +498,18 @@ class ConnectGameEnv(gym.Env):
         for x in range(self.height - 1, -1, -1):
             for y in range(self.width):
                 observation[y][x] = {-1: '.', 0: 'X', 1: 'O'}[self.board[y][x]]
+        return observation
+
+    def get_player_observations_number(self):
+        observation = np.zeros((self.height, self.width, 1), dtype=np.uint8)
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.board[x][y] == -1:
+                    observation[y, x, 0] = 0  # Empty
+                elif self.board[x][y] == 0:
+                    observation[y, x, 0] = 127  # Player 1
+                elif self.board[x][y] == 1:
+                    observation[y, x, 0] = 255  # Player 2
         return observation
 
     def check_for_episode_termination(self, movecol, row):

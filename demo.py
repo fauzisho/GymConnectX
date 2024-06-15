@@ -17,7 +17,8 @@ def run_game_env():
         delay=100,
         square_size=100,
         avatar_player_1='img_dog.png',
-        avatar_player_2='img_cat.png')
+        avatar_player_2='img_cat.png',
+        obs_number=True)
 
     env.reset()
 
