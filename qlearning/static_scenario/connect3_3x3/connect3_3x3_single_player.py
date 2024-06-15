@@ -14,9 +14,10 @@ def env_3x3():
         width=3,
         height=3,
         reward_winner=3,
-        reward_loser=-6,
+        reward_loser=-3,
         reward_draw=1,
-        reward_hell=-1,
+        reward_hell=-1.5,
+        reward_hell_prob=-1.5,
         reward_living=-0.1, )
     return env
 
@@ -24,8 +25,8 @@ def env_3x3():
 def train_agent_env():
     env = env_3x3()
     scenario = Scenario_3x3()
-    # valid_scenario_train = [scenario.generate_permutations()[0],[scenario.generate_permutations()[1]]]
-    valid_scenario_train = scenario.generate_permutations()
+    valid_scenario_train = [scenario.generate_permutations()[0]]
+    # valid_scenario_train = scenario.generate_permutations()
 
     agent1 = AgentQLearning(epsilon=0.1, role='player_1')
     agent2 = AgentQLearning(epsilon=0.1, role='player_2')
@@ -57,7 +58,7 @@ def train_agent_env():
 
                     env.render(mode='terminal_display')
 
-                    if env.current_step >= 4 and current_player == 'player_1':
+                    if current_player == 'player_1':
                         agent.update_q_value(state, action, rewards[current_player], next_state)
 
                     if done:
@@ -367,17 +368,17 @@ def test_all_scenario():
 if __name__ == "__main__":
     # ---- train 1----
 
-    # train_agent_env()
+    train_agent_env()
     # test_with_valid_scenario(file_name=f'1000/case_78_player_1_connect3_3x3.csv')
 
     # q_table = AgentQLearning().load_q_table_from_csv(f'1000/case_78_player_1_connect3_3x3.csv')
     # continue_training_agent_env(q_table)
 
     # valid_scenario = Scenario_3x3().generate_permutations()[17]  # always win
-    # valid_scenario = Scenario_3x3().generate_permutations()[0]  # 50%
-    # play_with_q_table(
-    #     scenario=valid_scenario,
-    #     file_name=f'1000/case_78_player_1_connect3_3x3.csv')
+    valid_scenario = Scenario_3x3().generate_permutations()[0]  # 50%
+    play_with_q_table(
+        scenario=valid_scenario,
+        file_name=f'case_1_player_1_connect3_3x3.csv')
 
     # ----continue train 2----
     # valid_scenario = Scenario_3x3_step_2().generate_permutations()[0]
@@ -393,4 +394,4 @@ if __name__ == "__main__":
     # test_all_scenario()
     # test_with_valid_scenario(file_name=f'final/case_player_1_connect3_3x3.csv')
 
-    test_with_valid_scenario(file_name=f'final/case_player_1_connect3_3x3.csv')
+    # test_with_valid_scenario(file_name=f'old/final/case_player_1_connect3_3x3.csv')

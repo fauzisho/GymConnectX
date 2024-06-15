@@ -18,8 +18,8 @@ def run_game_env():
         avatar_player_1='img_dog.png',
         avatar_player_2='img_cat.png')
 
-    env.reset()
 
+    env.reset()
     while not env.is_done and env.current_step < env.max_steps:
         try:
             move = env.set_players(player_1_mode='human_gui', player_2_mode='human_gui')

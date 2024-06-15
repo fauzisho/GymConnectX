@@ -253,6 +253,8 @@ class ConnectGameEnv(gym.Env):
                  reward_living=0,
                  reward_draw=0.5,
                  reward_hell=-0.5,
+                 reward_hell_prob=-0.75,
+                 reward_win_prob=0.75,
                  max_steps=100,
                  delay=100,
                  square_size=100,
@@ -288,6 +290,8 @@ class ConnectGameEnv(gym.Env):
         self.reward_living = reward_living
         self.reward_draw = reward_draw
         self.reward_hell = reward_hell
+        self.reward_hell_prob = reward_hell_prob
+        self.reward_win_prob = reward_win_prob
 
         self.max_steps = max_steps
         self.current_step = 0
@@ -315,6 +319,28 @@ class ConnectGameEnv(gym.Env):
                     return True
                 self.board[col][row] = -1
         return False
+
+    def calculate_hot_spots(self, W, H, C):
+        hot_spots = np.zeros((W, H))
+
+        for x in range(W):
+            for y in range(H):
+                # Horizontal lines
+                horizontal_lines = max(0, min(W - C + 1, x + 1, W - x))
+
+                # Vertical lines
+                vertical_lines = max(0, min(H - C + 1, y + 1, H - y))
+
+                # Diagonal lines (\searrow)
+                diagonal_down_lines = max(0, min(min(x + 1, y + 1), min(W - x, H - y), C))
+
+                # Diagonal lines (\nearrow)
+                diagonal_up_lines = max(0, min(min(x + 1, H - y), min(W - x, y + 1), C))
+
+                # Total potential winning lines
+                hot_spots[x, y] = horizontal_lines + vertical_lines + diagonal_down_lines + diagonal_up_lines
+
+        return hot_spots
 
     def step(self, movecol):
         """
@@ -347,13 +373,31 @@ class ConnectGameEnv(gym.Env):
         opponent_can_win_next = self.can_opponent_win_next(self.current_player)
 
         self.board[movecol][row] = self.current_player
-        self.current_player = 1 - self.current_player
 
         self.winner, reward_vector = self.check_for_episode_termination(movecol, row)
+
+        hot_spots = self.calculate_hot_spots(self.width, self.height, self.connect)
+        current_hot_spots_check = hot_spots[movecol, row]
+        opponent_hot_spots_after = current_hot_spots_check
+
+        if movecol in self.get_moves():
+            opponent_hot_spots_after = hot_spots[movecol, row + 1]
 
         info = {'legal_actions': self.get_moves(), 'next_player': self.current_player + 1}
         self.is_done = self.winner is not None
         self.renderer.update_display()
+
+        if opponent_hot_spots_after > current_hot_spots_check:
+            if self.current_player == 0:
+                reward_vector[0] = self.reward_hell_prob
+            else:
+                reward_vector[1] = self.reward_hell_prob
+
+        if hot_spots.max() == current_hot_spots_check:
+            if self.current_player == 0:
+                reward_vector[0] = self.reward_win_prob
+            else:
+                reward_vector[1] = self.reward_win_prob
 
         if opponent_can_win_next:
             if self.current_player == 0:
@@ -363,6 +407,7 @@ class ConnectGameEnv(gym.Env):
 
         reward_players = {'player_1': reward_vector[0], 'player_2': reward_vector[1]}
 
+        self.current_player = 1 - self.current_player
         observations = self.get_player_observations()
         terminated = self.is_done
 
