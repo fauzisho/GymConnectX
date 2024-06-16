@@ -1,6 +1,7 @@
 # Import:
 # -------
 import random
+
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -19,14 +20,10 @@ class Qnet(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
-      
+
     def sample_action(self, observation, epsilon):
         a = self.forward(observation)
-        
-        #! Exploration
         if random.random() < epsilon:
             return random.randint(0, 1)
-        
-        #! Exploitation
-        else : 
+        else:
             return a.argmax().item()

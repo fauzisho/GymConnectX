@@ -27,13 +27,8 @@ hot_spots_9x9_connect3 = calculate_hot_spots(3, 3, 3)
 print("Hot spots for 9x9 board with Connect3:")
 print(hot_spots_9x9_connect3)
 
-# Example usage for 4x4 board with Connect3
-hot_spots_4x4_connect3 = calculate_hot_spots(4, 4, 0)
-print("Hot spots for 4x4 board with Connect3:")
-print(hot_spots_4x4_connect3)
-
 # Example usage for 5x5 board with Connect4
-hot_spots_5x5_connect4 = calculate_hot_spots(5, 5, 0)
+hot_spots_5x5_connect4 = calculate_hot_spots(5, 5, 4)
 print("Hot spots for 5x5 board with Connect4:")
 print(hot_spots_5x5_connect4)
 
