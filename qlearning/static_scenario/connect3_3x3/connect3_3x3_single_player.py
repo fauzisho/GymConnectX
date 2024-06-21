@@ -370,16 +370,16 @@ if __name__ == "__main__":
     # ---- train 1----
 
     # train_agent_env()
-    test_with_valid_scenario(file_name=f'new/1000 no hell rewards/case_78_player_1_connect3_3x3.csv')
+    # test_with_valid_scenario(file_name=f'new/1000 no hell rewards/case_78_player_1_connect3_3x3.csv')
 
     # q_table = AgentQLearning().load_q_table_from_csv(f'1000/case_78_player_1_connect3_3x3.csv')
     # continue_training_agent_env(q_table)
 
     # valid_scenario = Scenario_3x3().generate_permutations()[17]  # always win
-    # valid_scenario = Scenario_3x3().generate_permutations()[0]  # 50%
-    # play_with_q_table(
-    #     scenario=valid_scenario,
-    #     file_name=f'case_1_player_1_connect3_3x3.csv')
+    # valid_scenario = Scenario_3x3().generate_permutations()[17]  # 50%
+    play_with_q_table(
+        # scenario=valid_scenario,
+        file_name=f'new/1000 all rewards/case_78_player_1_connect3_3x3.csv')
 
     # ----continue train 2----
     # valid_scenario = Scenario_3x3_step_2().generate_permutations()[0]
