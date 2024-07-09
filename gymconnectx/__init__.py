@@ -1,8 +1,6 @@
 # gymconnectx/__init__.py
 
-import gym
-import pygame
-from gym.envs.registration import register
+from gymnasium.envs.registration import register
 
 # Register the custom environment
 register(

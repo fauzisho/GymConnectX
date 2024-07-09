@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gymconnectx"
-version = "1.2.1"
-description = "An OpenAI Gym Environment Connect X Game with GUI. ConnectX is a game for two players that is based on the well-known Connect 4. The goal is to place X coins in a row, column, or diagonal on a board with dimensions M by N."
+version = "2.0.0"
+description = "An OpenAI Gymnasium Environment Connect X Game with GUI. ConnectX is a game for two players that is based on the well-known Connect 4. The goal is to place X coins in a row, column, or diagonal on a board with dimensions M by N."
 readme = "README.md"
 authors = [{ name = "Fauzi Sholichin" }]
 license = { file = "LICENSE.md" }
@@ -14,8 +14,8 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-keywords = ["connect4", "gym", "pygame", "reinforcement learning"]
-dependencies = ["gym", "pygame"]
+keywords = ["connect4", "gymnasium", "pygame", "reinforcement learning"]
+dependencies = ["gymnasium", "pygame"]
 requires-python = ">=3.9"
 
 [project.urls]

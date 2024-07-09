@@ -5,10 +5,10 @@ import re
 import sys
 from typing import List
 
-import gym
+import gymnasium
 import numpy as np
 import pygame
-from gym.spaces import Tuple, Box, Discrete
+from gymnasium.spaces import Tuple, Box, Discrete
 
 
 class PyGameRenderEnv:
@@ -245,7 +245,7 @@ class PyGameRenderEnv:
         sys.exit()
 
 
-class ConnectGameEnv(gym.Env):
+class ConnectGameEnv(gymnasium.Env):
     def __init__(self, connect=4,
                  width=7,
                  height=7,
