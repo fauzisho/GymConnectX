@@ -115,7 +115,7 @@ The `ConnectGameEnv` class is designed to simulate a Connect 4-like game environ
 
 Please use this bibtex if you want to cite this repository in your publications:
 
-    @misc{pytorchaaac,
+    @misc{gymconnectx,
       author = {Sholichin, Fauzi},
       title = {ConnectX Game Environment},
       year = {2024},
