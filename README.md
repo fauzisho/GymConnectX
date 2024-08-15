@@ -109,6 +109,10 @@ else:
 move = env.set_players(player_1_mode='human_gui', player_2_mode='human_gui')
 ```
 
+## Reinforcement Learning Agents
+Q-Learning and DQN
+https://github.com/fauzisho/RLConnectX
+
 # ConnectGameEnv Class
 
 The `ConnectGameEnv` class is designed to simulate a Connect 4-like game environment, allowing customization through various parameters to accommodate different rules and interfaces. Below are the parameters it accepts:
